@@ -12,16 +12,16 @@ using System.Threading.Tasks;
 
 namespace CoreCodeCamp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/camps")]
     [ApiController]
-    [ApiVersion("1.0"), ApiVersion("1.1")]
-    public class CampsController : ControllerBase
+    [ApiVersion("2.0")]
+    public class Camps2Controller : ControllerBase
     {
         private readonly ICampRepository _campRepository;
         private readonly IMapper _mapper;
         private readonly LinkGenerator _linkGenerator;
 
-        public CampsController(ICampRepository campRepository, IMapper mapper, LinkGenerator linkGenerator)
+        public Camps2Controller(ICampRepository campRepository, IMapper mapper, LinkGenerator linkGenerator)
         {
             _mapper = mapper;
             _linkGenerator = linkGenerator;
@@ -30,13 +30,17 @@ namespace CoreCodeCamp.Controllers
 
         
         [HttpGet]
-        public async Task<ActionResult<CampModel[]>> Get(bool includeTalks = false)
+        public async Task<IActionResult> Get(bool includeTalks = false)
         {
             try
             {
                 var results = await _campRepository.GetAllCampsAsync(includeTalks);
-
-                return _mapper.Map<CampModel[]>(results);
+                var result = new
+                {
+                    Count = results.Count(),
+                    Results = _mapper.Map<CampModel[]>(results)
+                };
+                return Ok(result);
             }
             catch (Exception ex)
             {
