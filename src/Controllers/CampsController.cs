@@ -82,12 +82,14 @@ namespace CoreCodeCamp.Controllers
         {
             try
             {
-                var location = _linkGenerator.GetPathByAction("Get",
-                    "Camps",
-                    new
-                    {
-                        moniker = model.Moniker
-                    });
+                var existing = await _campRepository.GetCampAsync(model.Moniker);
+                if (existing != null)
+                {
+                    return BadRequest("Moniker is Use");
+                }
+
+
+                var location = _linkGenerator.GetPathByAction("Get", "Camps", new { moniker = model.Moniker });
 
                 if (string.IsNullOrWhiteSpace(location))
                 {
@@ -95,10 +97,10 @@ namespace CoreCodeCamp.Controllers
                 }
 
                 var camp = _mapper.Map<Camp>(model);
-                _campRepository.Add(camp);
+                _campRepository.Add(existing);
                 if (await _campRepository.SaveChangesAsync())
                 {
-                    return Created($"/api/camps/{camp.Moniker}", _mapper.Map<CampModel>(camp));
+                    return Created($"/api/camps/{existing.Moniker}", _mapper.Map<CampModel>(existing));
                 }
             }
             catch (Exception ex)
