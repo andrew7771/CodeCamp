@@ -97,10 +97,10 @@ namespace CoreCodeCamp.Controllers
                 }
 
                 var camp = _mapper.Map<Camp>(model);
-                _campRepository.Add(existing);
+                _campRepository.Add(camp);
                 if (await _campRepository.SaveChangesAsync())
                 {
-                    return Created($"/api/camps/{existing.Moniker}", _mapper.Map<CampModel>(existing));
+                    return Created(location, _mapper.Map<CampModel>(camp));
                 }
             }
             catch (Exception ex)
@@ -109,6 +109,58 @@ namespace CoreCodeCamp.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpPut("{moniker}")]
+        public async Task<ActionResult<CampModel>> Put(string moniker, CampModel model)
+        {
+            try
+            {
+                var oldCamp = await _campRepository.GetCampAsync(model.Moniker);
+                if (oldCamp == null)
+                    return NotFound($"Could not find camp with moniker of {model.Moniker}");
+
+                _mapper.Map(model, oldCamp);
+                if (await _campRepository.SaveChangesAsync())
+                {
+                    return _mapper.Map<CampModel>(oldCamp);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong on the server");
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{moniker}")]
+        public async Task<IActionResult> Delete(string moniker)
+        {
+            try
+            {
+                var oldCamp = await _campRepository.GetCampAsync(moniker);
+                if (oldCamp == null)
+                {
+                    return NotFound();
+                }
+
+                _campRepository.Delete(oldCamp);
+
+                if (await _campRepository.SaveChangesAsync())
+                {
+                    return Ok();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong on the server");
+            }
+
+            return BadRequest("Failed to delete the Camp");
+
         }
     }
 }
