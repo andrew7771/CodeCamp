@@ -56,5 +56,22 @@ namespace CoreCodeCamp.Controllers
             }
         }
 
+        [HttpGet("search")]
+        public async Task<ActionResult<CampModel[]>> SearchByDate(DateTime theDate, bool includeTalks = false)
+        {
+            try
+            {
+                var results = await _campRepository.GetAllCampsByEventDate(theDate, includeTalks);
+
+                if (!results.Any())
+                    return NotFound();
+
+                return _mapper.Map<CampModel[]>(results);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong on the server");
+            }
+        }
     }
 }
